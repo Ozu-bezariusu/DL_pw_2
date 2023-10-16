@@ -216,7 +216,62 @@ func (customNum *CustomNum) AND(otherCustomNum *CustomNum) *CustomNum {
 	return &CustomNum{result}
 }
 
+func (customNum *CustomNum) ShiftL(n uint) {
+	resultData := make([]uint64, len(customNum.value))
+
+	uint64ToBinary := func(val uint64) string {
+		s := ""
+		for i := 0; i < 64; i++ {
+			if val%2 == 1 {
+				s = "1" + s
+			} else {
+				s = "0" + s
+			}
+			val /= 2
+		}
+		return s
+	}
+	binaryToUint64 := func(s string) uint64 {
+		val := uint64(0)
+		multiplier := uint64(1)
+		for i := len(s) - 1; i >= 0; i-- {
+			if s[i] == '1' {
+				val += multiplier
+			}
+			multiplier *= 2
+		}
+		return val
+	}
+
+	combinedBinary := ""
+	for _, chunk := range customNum.value {
+		combinedBinary += uint64ToBinary(chunk)
+	}
+
+	combinedBinary += strings.Repeat("0", int(n))
+
+	for i := 0; i < len(resultData); i++ {
+		startIndex := 64 * i
+		endIndex := startIndex + 64
+		if endIndex <= len(combinedBinary) {
+			resultData[i] = binaryToUint64(combinedBinary[startIndex:endIndex])
+		}
+	}
+
+	customNum.value = resultData
+}
+
 func main() {
+	//shiftL
+	aShiftL := NewCustomNum()
+	aShiftL.SetHex("403db8ad88a3932a0b7e8189aed9eeffb8121dfac05c3512fdb396dd73f6331c")
+	aShiftL.ShiftL(4)
+	if aShiftL.GetHex() == "403DB8AD88A3932A0B7E8189AED9EEFFB8121DFAC05C3512FDB396DD73F6331C" {
+		fmt.Printf("shift left works correct\n")
+	} else {
+		fmt.Printf("shift left works incorrect, result is: %s\n", aShiftL.GetHex())
+	}
+	
 	//AND
 	aAND := NewCustomNum()
 	bAND := NewCustomNum()
